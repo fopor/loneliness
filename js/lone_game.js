@@ -1,3 +1,7 @@
+//Constants to control the game
+const numberOfFriends = 3;
+
+
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
@@ -29,13 +33,40 @@ friendImage.onload = function () {
 };
 friendImage.src = "images/amigo_base.png";
 
+// friend-Angry sprite
+var friendAngryReady = false;
+var friendAngryImage = new Image();
+friendAngryImage.onload = function () {
+	friendAngryReady = true;
+};
+friendAngryImage.src = "images/amigo_irritado.png";
+
+// friend-Scared sprite
+var friendScaredReady = false;
+var friendScaredImage = new Image();
+friendScaredImage.onload = function () {
+	friendScaredReady = true;
+};
+friendScaredImage.src = "images/amigo_assustado.png";
+
 // Game objects
 var player = {
-	speed: 256 // movement in pixels per second
+	speed: 512 // movement in pixels per second
 };
-var friend = {};
+
+//return the distance  between two objetcs
+function distanceCalc (obj1, obj2) {
+    return Math.sqrt((obj1.x - obj2.x)*(obj1.x - obj2.x) + (obj1.y - obj2.y)*(obj1.y - obj2.y));
+}
+
+//list of FRINDS (SIZE MUST MATCH OR BE GREATER THAN CONST numberOfFriends)
+var friend= [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+
 var friendCaught = 0;
 var firstPlay = 0;
+var mindSet = 1; //nominal mindset
+var proxFlag = 0; //flag for proximity
+var colisionDistance = 120; //DISTANCE TO CONSIDER COLISION
 
 // Handle keyboard controls
 var keysDown = {};
@@ -54,14 +85,18 @@ if (firstPlay == 0){
 	player.x = canvas.width / 2;
 	player.y = canvas.height  - 120;
 
-	// Throw the monster somewhere on the screen randomly
-	friend.x = 32 + (Math.random() * (canvas.width - 64));
-	//monster.y = 32 + (Math.random() * (canvas.height - 64));
-    friend.y = (canvas.height  - 200) - Math.random() *(canvas.height -200);
+	// Throw the friends somewhere on the screen 
+    for(i = 0; i < numberOfFriends; i++){
+        friend[i].x = 128 + (canvas.width)*(i/(numberOfFriends));
+        
+        //TO-DO add random factor here
+        friend[i].y = 100;
+    }
     
     firstPlay = 1;
     }
     
+    //function executed at COLISION
     else {
     if (player.x > canvas.width / 2 ) {
        player.x--;
@@ -71,13 +106,21 @@ if (firstPlay == 0){
        player.x++;
     }
     
-    if (player.y > canvas.height  - 120) {
+    else if (player.y > canvas.height  - 120) {
         player.y--;
     }
     
-    else if (player.y <  canvas.height  - 120) {
-        player.y++;
+    while (player.y <  canvas.height  - 120) {
+    
+
+
+        //one step per step
+         player.y++;
+        render();
+
+
     }
+    
     }
     
 };
@@ -90,26 +133,34 @@ var update = function (modifier) {
 	if (40 in keysDown) { // Player holding down
 		player.y += player.speed * modifier;
 	}
-	if (37 in keysDown) { // Player holding left
+	
+    //TO-DO is this game recibing X moviment??
+    if (37 in keysDown) { // Player holding left
 		player.x -= player.speed * modifier;
 	}
+    
 	if (39 in keysDown) { // Player holding right
 		player.x += player.speed * modifier;
 	}
 
 	// Are they touching?
-	if (
-		player.x <= (friend.x + 32)
-		&& friend.x <= (player.x + 32)
-		&& player.y <= (friend.y + 32)
-		&& friend.y <= (player.y + 32)
-	) {
-		++friendCaught;
+    //check for proximity
+    proxFlag = 0;
+	for(i = 0; i < numberOfFriends; i++){
+        if((friend[i].x <= player.x + colisionDistance) && (player.x <= friend[i].x + colisionDistance) &&
+         (friend[i].y <= player.y + colisionDistance) && (player.y <= friend[i].y + colisionDistance)){
+            proxFlag = 1;
+        }
+        
+    }
+    
+    if( proxFlag == 1){
+        ++friendCaught;
 		reset();
-	}
+    }
 };
 
-// Draw everything
+// Draw everything - roda todo ciclo
 var render = function () {
 	if (bgReady) {
 		ctx.drawImage(bgImage, 0, 0);
@@ -119,16 +170,34 @@ var render = function () {
 		ctx.drawImage(playerImage, player.x, player.y);
 	}
 
-	if (friendReady) {
-		ctx.drawImage(friendImage, friend.x, friend.y);
+    //draws all the friends
+    //draws the nominal friend
+	if (friendReady &&  mindSet == 0) {
+        for(i = 0; i < numberOfFriends; i++){
+            ctx.drawImage(friendImage, friend[i].x, friend[i].y);
+        }
 	}
-
+    
+    //draws the scared friend
+	else if (friendScaredReady &&  mindSet == 1) {
+        for(i = 0; i < numberOfFriends; i++){
+            ctx.drawImage(friendScaredImage, friend[i].x, friend[i].y);
+        }
+	}
+    
+    //draws the angry friend
+	else if (friendAngryReady &&  mindSet == 2) {
+        for(i = 0; i < numberOfFriends; i++){
+            ctx.drawImage(friendAngryImage, friend[i].x, friend[i].y);
+        }
+	}
+    
 	// Score
 	ctx.fillStyle = "rgb(0, 0, 0)";
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	ctx.fillText("Amigos assustados: " + friendCaught, 400, 32);
+	ctx.fillText("Amigos assustados: " + friendCaught + "\ndist:" + distanceCalc(player, friend[0]), 400, 32);
 };
 
 // The main game loop
