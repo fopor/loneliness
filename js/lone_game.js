@@ -1,5 +1,10 @@
 //Constants to control the game
-const numberOfFriends = 3;
+const numberOfFriends = 4;
+const friendYSize = 120;
+const friendXSize = 120;
+const playerXSize = 120;
+const playerYSize = 120;
+const DEBBUG = 1;
 
 
 // Create the canvas
@@ -69,6 +74,9 @@ var proxFlag = 0; //flag for proximity
 var colisionDistance = 200; //DISTANCE TO CONSIDER COLISION
 var colisionID = 0; //stores the block witch colided
 var runAwaySpeed = 1; //SPEED USED TO RUN AWAY
+var playerBorderColision = 0; //flag for border colision
+var friendBorderColision = 0; //flag for border colision
+var playerhappiness = 50000;
 
 // Handle keyboard controls
 var keysDown = {};
@@ -117,8 +125,52 @@ var softColision = function () {
     else if (friend[colisionID].y < player.y) {
         friend[colisionID].y -= runAwaySpeed;
     }
+}
+
+//moves  the player 1 step closer to center
+var movePlayerToCenter = function () {
+    if(player.x > canvas.width/2) {
+        player.x--;
+    }
     
-    //makes player go to center
+    else if(player.x < canvas.width/2){
+        player.x++;
+    }
+    
+    if(player.y >= playerYSize){
+        player.y++;
+    }
+}
+
+ //move friends to StandardPosition (at y = 200 and x = i/numberOfFriends)
+ var moveFriendsBack = function () {
+    //takes every friend, one by one, back to its StandardPosition
+    for(i = 0; i < numberOfFriends; i++){
+        if(friend[i].y < 150){
+            friend[i].y += runAwaySpeed;
+        }
+        
+        else if(friend[i].y > 150) {
+            friend[i].y -= runAwaySpeed;
+        }
+        
+        if(friend[i].x > i*canvas.width/numberOfFriends + friendXSize){
+            friend[i].x -= runAwaySpeed;
+        }
+        
+        else if (friend[i].x < i*canvas.width/numberOfFriends+ friendXSize) {
+            friend[i].x += runAwaySpeed;
+        }
+    }
+ }
+
+//re-arranje all objetcs
+var reCenter = function() {
+    //player is moved in direction to center
+    movePlayerToCenter();
+    
+    //move friends to StandardPosition (at y = 200 and x = i/numberOfFriends)
+    moveFriendsBack();
     
 }
 
@@ -146,6 +198,64 @@ var update = function (modifier) {
             mindSet = 0;
         }
 
+    //are friends touching BORDERS?
+    //resets the colision flag
+    friendBorderColision = 0;
+    
+    //check for border colision for all friends
+    for(i = 0; i < numberOfFriends; i++){
+        if(friend[i].x + friendXSize >= canvas.width) {
+            friendBorderColision = 1;
+        }
+        
+        //dont move past the left wall
+        if(friend[i].x <= 0){
+            friendBorderColision = 1;
+        }
+        
+        //dont pass the ceiling
+        if(friend[i].y <= 0){
+             friendBorderColision = 1;
+        }
+        
+        //dont move past the floor
+        if(friend[i].y + friendYSize >= canvas.height) {
+            friendBorderColision = 1;
+        }
+    }
+    
+    if(friendBorderColision == 1){
+        playerhappiness -= 100;
+    }
+    
+    //is the player touching the BORDERS?
+    //resets the colision flag
+    playerBorderColision = 0;
+    
+    //dont move past the right wall
+    if(player.x + playerXSize >= canvas.width) {
+        playerBorderColision = 1;
+        player.x -= 1;
+    }
+    
+    //dont move past the left wall
+    if(player.x <= 0){
+        playerBorderColision = 1;
+        player.x += 1;
+    }
+    
+    //dont pass the ceiling
+    if(player.y <= 0){
+        playerBorderColision = 1;
+        player.y += 1;
+    }
+    
+    //dont move past the floor
+    if(player.y + playerYSize >= canvas.height) {
+        playerBorderColision = 1;
+        player.y -= 1;
+    }
+    
 	// Are they touching?
     //check for proximity
     proxFlag = 0;
@@ -157,8 +267,13 @@ var update = function (modifier) {
         }   
     }
     
+    //if friends are TOUCHING THE BORDER, solve this
+    if(friendBorderColision == 1){
+        reCenter();
+    }
+    
     //Process the MOVE INPUTS
-    if(proxFlag == 0){
+    if(proxFlag == 0 && playerBorderColision == 0 && friendBorderColision == 0){
         if (38 in keysDown) { // Player holding up
             player.y -= player.speed * modifier;
         }
@@ -176,7 +291,8 @@ var update = function (modifier) {
         }
     }
     
-    if( proxFlag == 1){
+    //colision between friend and player
+    if( proxFlag == 1 && friendBorderColision == 0){
 		softColision();
     }
 };
@@ -213,13 +329,18 @@ var render = function () {
         }
 	}
     
-	// Score
+	// information for DEBBUGIN
+    if(DEBBUG == 1){
 	ctx.fillStyle = "rgb(0, 0, 0)";
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-    for(i = 0; i < numberOfFriends; i++){
-	ctx.fillText("dist_" + i + ":" + distanceCalc(player, friend[i]), 400, 32*i);
+    for(i = 0; i < numberOfFriends; i++) {
+        ctx.fillText("dist_" + i + ":" + distanceCalc(player, friend[i]), 400, 32*i);
+    }
+    ctx.fillText("player_pos: x="  + player.x + "  y=" + player.y, 400, 32*i);
+    ctx.fillText("friend_col_flag: " + friendBorderColision, 400, 32*(i+1));
+    ctx.fillText("Player_Happniess: " + playerhappiness, 400, 32*(i+2));
     }
     
     //This block was originally at the MAIN function, but we must put it here
@@ -235,6 +356,15 @@ var main = function () {
 
     update (delta/1000);
 	render();
+    playerhappiness -= 1;
+    
+    if(mindSet == 1){
+        playerhappiness -= 3;
+    }
+    
+    if(mindSet == 2){
+        playerhappiness -= 20;
+    }
 
 	then = now;
 };
