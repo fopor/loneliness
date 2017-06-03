@@ -13,28 +13,28 @@ bgImage.onload = function () {
 };
 bgImage.src = "images/bkg.png";
 
-// Hero image
-var heroReady = false;
-var heroImage = new Image();
-heroImage.onload = function () {
-	heroReady = true;
+// Player sprite
+var playerReady = false;
+var playerImage = new Image();
+playerImage.onload = function () {
+	playerReady = true;
 };
-heroImage.src = "images/player.png";
+playerImage.src = "images/player.png";
 
-// Monster image
-var monsterReady = false;
-var monsterImage = new Image();
-monsterImage.onload = function () {
-	monsterReady = true;
+// friend image
+var friendReady = false;
+var friendImage = new Image();
+friendImage.onload = function () {
+	friendReady = true;
 };
-monsterImage.src = "images/amigo_base.png";
+friendImage.src = "images/amigo_base.png";
 
 // Game objects
-var hero = {
+var player = {
 	speed: 256 // movement in pixels per second
 };
-var monster = {};
-var monstersCaught = 0;
+var friend = {};
+var friendCaught = 0;
 var firstPlay = 0;
 
 // Handle keyboard controls
@@ -51,32 +51,32 @@ addEventListener("keyup", function (e) {
 // Reset the game when the player catches a monster
 var reset = function () {
 if (firstPlay == 0){
-	hero.x = canvas.width / 2;
-	hero.y = canvas.height  - 120;
+	player.x = canvas.width / 2;
+	player.y = canvas.height  - 120;
 
 	// Throw the monster somewhere on the screen randomly
-	monster.x = 32 + (Math.random() * (canvas.width - 64));
+	friend.x = 32 + (Math.random() * (canvas.width - 64));
 	//monster.y = 32 + (Math.random() * (canvas.height - 64));
-    monster.y = (canvas.height  - 200) - Math.random() *(canvas.height -200);
+    friend.y = (canvas.height  - 200) - Math.random() *(canvas.height -200);
     
     firstPlay = 1;
     }
     
     else {
-    if (hero.x > canvas.width / 2 ) {
-       hero.x--;
+    if (player.x > canvas.width / 2 ) {
+       player.x--;
     }
     
-    else if (hero.x < canvas.width / 2) {
-       hero.x++;
+    else if (player.x < canvas.width / 2) {
+       player.x++;
     }
     
-    if (hero.y > canvas.height  - 120) {
-        hero.y--;
+    if (player.y > canvas.height  - 120) {
+        player.y--;
     }
     
-    else if (hero.y <  canvas.height  - 120) {
-        hero.y++;
+    else if (player.y <  canvas.height  - 120) {
+        player.y++;
     }
     }
     
@@ -85,26 +85,26 @@ if (firstPlay == 0){
 // Update game objects
 var update = function (modifier) {
 	if (38 in keysDown) { // Player holding up
-		hero.y -= hero.speed * modifier;
+		player.y -= player.speed * modifier;
 	}
 	if (40 in keysDown) { // Player holding down
-		hero.y += hero.speed * modifier;
+		player.y += player.speed * modifier;
 	}
 	if (37 in keysDown) { // Player holding left
-		hero.x -= hero.speed * modifier;
+		player.x -= player.speed * modifier;
 	}
 	if (39 in keysDown) { // Player holding right
-		hero.x += hero.speed * modifier;
+		player.x += player.speed * modifier;
 	}
 
 	// Are they touching?
 	if (
-		hero.x <= (monster.x + 32)
-		&& monster.x <= (hero.x + 32)
-		&& hero.y <= (monster.y + 32)
-		&& monster.y <= (hero.y + 32)
+		player.x <= (friend.x + 32)
+		&& friend.x <= (player.x + 32)
+		&& player.y <= (friend.y + 32)
+		&& friend.y <= (player.y + 32)
 	) {
-		++monstersCaught;
+		++friendCaught;
 		reset();
 	}
 };
@@ -115,12 +115,12 @@ var render = function () {
 		ctx.drawImage(bgImage, 0, 0);
 	}
 
-	if (heroReady) {
-		ctx.drawImage(heroImage, hero.x, hero.y);
+	if (playerReady) {
+		ctx.drawImage(playerImage, player.x, player.y);
 	}
 
-	if (monsterReady) {
-		ctx.drawImage(monsterImage, monster.x, monster.y);
+	if (friendReady) {
+		ctx.drawImage(friendImage, friend.x, friend.y);
 	}
 
 	// Score
@@ -128,7 +128,7 @@ var render = function () {
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	ctx.fillText("Amigos assustados: " + monstersCaught, 400, 32);
+	ctx.fillText("Amigos assustados: " + friendCaught, 400, 32);
 };
 
 // The main game loop
