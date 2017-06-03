@@ -51,7 +51,7 @@ friendScaredImage.src = "images/amigo_assustado.png";
 
 // Game objects
 var player = {
-	speed: 512 // movement in pixels per second
+	speed: 400 // movement in pixels per second
 };
 
 //return the distance  between two objetcs
@@ -60,13 +60,15 @@ function distanceCalc (obj1, obj2) {
 }
 
 //list of FRINDS (SIZE MUST MATCH OR BE GREATER THAN CONST numberOfFriends)
-var friend= [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+var friend= [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
 
 var friendCaught = 0;
 var firstPlay = 0;
-var mindSet = 1; //nominal mindset
+var mindSet = 0; //nominal mindset
 var proxFlag = 0; //flag for proximity
-var colisionDistance = 120; //DISTANCE TO CONSIDER COLISION
+var colisionDistance = 200; //DISTANCE TO CONSIDER COLISION
+var colisionID = 0; //stores the block witch colided
+var runAwaySpeed = 1; //SPEED USED TO RUN AWAY
 
 // Handle keyboard controls
 var keysDown = {};
@@ -90,73 +92,92 @@ if (firstPlay == 0){
         friend[i].x = 128 + (canvas.width)*(i/(numberOfFriends));
         
         //TO-DO add random factor here
-        friend[i].y = 100;
+        friend[i].y = 100+ Math.random()*60;
     }
     
     firstPlay = 1;
     }
-    
-    //function executed at COLISION
-    else {
-    if (player.x > canvas.width / 2 ) {
-       player.x--;
-    }
-    
-    else if (player.x < canvas.width / 2) {
-       player.x++;
-    }
-    
-    else if (player.y > canvas.height  - 120) {
-        player.y--;
-    }
-    
-    while (player.y <  canvas.height  - 120) {
-    
-
-
-        //one step per step
-         player.y++;
-        render();
-
-
-    }
-    
-    }
-    
 };
+
+var softColision = function () {
+    //function executed at Proximity Alert
+    //make friend avoid the player
+    if(friend[colisionID].x > player.x){
+        friend[colisionID].x += runAwaySpeed;
+    }
+    
+    else if (friend[colisionID].x < player.x) {
+        friend[colisionID].x -= runAwaySpeed;
+    }
+    
+    if(friend[colisionID].y > player.y){
+        friend[colisionID].y += runAwaySpeed;
+    }
+    
+    else if (friend[colisionID].y < player.y) {
+        friend[colisionID].y -= runAwaySpeed;
+    }
+    
+    //makes player go to center
+    
+}
 
 // Update game objects
 var update = function (modifier) {
-	if (38 in keysDown) { // Player holding up
-		player.y -= player.speed * modifier;
-	}
-	if (40 in keysDown) { // Player holding down
-		player.y += player.speed * modifier;
-	}
-	
-    //TO-DO is this game recibing X moviment??
-    if (37 in keysDown) { // Player holding left
-		player.x -= player.speed * modifier;
-	}
-    
-	if (39 in keysDown) { // Player holding right
-		player.x += player.speed * modifier;
-	}
+    //process the MOOD INPUTS
+    if (65 in keysDown) { // Player pushs 'A'
+            //start SCARED MODE
+            colisionDistance = 250;
+            runAwaySpeed = 5;
+            mindSet = 1;
+        }
+        
+    if (83 in keysDown) { // Player pushs 'S'
+            //start ANGRY MODE
+            colisionDistance = 120;
+            runAwaySpeed = 30;
+            mindSet = 2;
+        }
+        
+    if (68 in keysDown) { // Player pushs 'D'
+            //start NOMINAL MODE
+            colisionDistance = 200;
+            runAwaySpeed = 1;
+            mindSet = 0;
+        }
 
 	// Are they touching?
     //check for proximity
     proxFlag = 0;
 	for(i = 0; i < numberOfFriends; i++){
-        if((friend[i].x <= player.x + colisionDistance) && (player.x <= friend[i].x + colisionDistance) &&
-         (friend[i].y <= player.y + colisionDistance) && (player.y <= friend[i].y + colisionDistance)){
+        //check if DISTANDCE < COLISION DISTANCE with each object
+        if(distanceCalc(player, friend[i]) < colisionDistance){
+            colisionID = i;
             proxFlag = 1;
+        }   
+    }
+    
+    //Process the MOVE INPUTS
+    if(proxFlag == 0){
+        if (38 in keysDown) { // Player holding up
+            player.y -= player.speed * modifier;
+        }
+
+        if (40 in keysDown) { // Player holding down
+            player.y += player.speed * modifier;
         }
         
+        if (37 in keysDown) { // Player holding left
+            player.x -= player.speed * modifier;
+        }
+        
+        if (39 in keysDown) { // Player holding right
+            player.x += player.speed * modifier;
+        }
     }
     
     if( proxFlag == 1){
-        ++friendCaught;
-		reset();
+		softColision();
     }
 };
 
@@ -197,7 +218,14 @@ var render = function () {
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	ctx.fillText("Amigos assustados: " + friendCaught + "\ndist:" + distanceCalc(player, friend[0]), 400, 32);
+    for(i = 0; i < numberOfFriends; i++){
+	ctx.fillText("dist_" + i + ":" + distanceCalc(player, friend[i]), 400, 32*i);
+    }
+    
+    //This block was originally at the MAIN function, but we must put it here
+    //TODO Check if this cause instability
+	// Request to do this again ASAP
+	requestAnimationFrame(main);
 };
 
 // The main game loop
@@ -205,13 +233,10 @@ var main = function () {
 	var now = Date.now();
 	var delta = now - then;
 
-	update(delta / 1000);
+    update (delta/1000);
 	render();
 
 	then = now;
-
-	// Request to do this again ASAP
-	requestAnimationFrame(main);
 };
 
 // Cross-browser support for requestAnimationFrame
