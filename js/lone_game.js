@@ -22,13 +22,37 @@ bgImage.onload = function () {
 };
 bgImage.src = "images/bkg.png";
 
-// Player sprite
+// Player_happy sprite
 var playerReady = false;
 var playerImage = new Image();
 playerImage.onload = function () {
 	playerReady = true;
 };
-playerImage.src = "images/player.png";
+playerImage.src = "images/player_happy.png";
+
+// Player_neutral sprite
+var playerNeutralReady = false;
+var playerNeutralImage = new Image();
+playerNeutralImage.onload = function () {
+	playerNeutralReady = true;
+};
+playerNeutralImage.src = "images/player_neutral.png";
+
+// Player_sad sprite
+var playerSadReady = false;
+var playerSadImage = new Image();
+playerSadImage.onload = function () {
+	playerSadReady = true;
+};
+playerSadImage.src = "images/player_sad.png";
+
+// Player_very_sad sprite
+var playerVerySadReady = false;
+var playerVerySadImage = new Image();
+playerVerySadImage.onload = function () {
+	playerVerySadReady = true;
+};
+playerVerySadImage.src = "images/player_very_sad.png";
 
 // friend image
 var friendReady = false;
@@ -78,7 +102,8 @@ var colisionID = 0; //stores the block witch colided
 var runAwaySpeed = 1; //SPEED USED TO RUN AWAY
 var playerBorderColision = 0; //flag for border colision
 var friendBorderColision = 0; //flag for border colision
-var playerhappiness = 50000;  //this number is slowly reduced, and the game ends when its reachs zero
+var playerhappiness = 35000;  //this number is slowly reduced, and the game ends when its reachs zero
+var playerState = 4; //defines the player mood
 
 // Handle keyboard controls
 var keysDown = {};
@@ -173,11 +198,24 @@ var reCenter = function() {
     
     //move friends to StandardPosition (at y = 200 and x = i/numberOfFriends)
     moveFriendsBack();
-    
 }
 
 // Update game objects
 var update = function (modifier) {
+    //updates the player mood
+    if(playerhappiness  < 30000){
+        playerState = 3;
+    }
+    
+    if(playerhappiness  < 10000){
+        playerState = 2;
+    }
+    
+    if(playerhappiness  < 5000){
+        playerState = 1;
+    }
+
+
     //process the MOOD INPUTS
     if (65 in keysDown) { // Player pushs 'A'
             //start SCARED MODE
@@ -305,9 +343,21 @@ var render = function () {
 		ctx.drawImage(bgImage, 0, 0);
 	}
 
-	if (playerReady) {
+	if (playerReady && playerState == 4) {
 		ctx.drawImage(playerImage, player.x, player.y);
 	}
+    
+    if (playerNeutralReady && playerState == 3) {
+		ctx.drawImage(playerNeutralImage, player.x, player.y);
+	}
+    
+    if (playerSadReady && playerState == 2){
+        ctx.drawImage(playerSadImage, player.x, player.y);
+    }
+    
+    if(playerVerySadReady && playerState == 1){
+        ctx.drawImage(playerVerySadImage, player.x,player.y);
+    }
 
     //draws all the friends
     //draws the nominal friend
@@ -340,9 +390,11 @@ var render = function () {
     for(i = 0; i < numberOfFriends; i++) {
         ctx.fillText("dist_" + i + ":" + distanceCalc(player, friend[i]), 400, 32*i);
     }
+    
     ctx.fillText("player_pos: x="  + player.x + "  y=" + player.y, 400, 32*i);
     ctx.fillText("friend_col_flag: " + friendBorderColision, 400, 32*(i+1));
     ctx.fillText("Player_Happniess: " + playerhappiness, 400, 32*(i+2));
+    ctx.fillText("PlayerState: " + playerState, 400, 32*(i+3));
     }
     
     //This block was originally at the MAIN function, but we must put it here
