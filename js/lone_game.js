@@ -67,8 +67,10 @@ function distanceCalc (obj1, obj2) {
 //list of FRINDS (SIZE MUST MATCH OR BE GREATER THAN CONST numberOfFriends)
 var friend= [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
 
-var friendCaught = 0;
-var firstPlay = 0;
+var friendCaught = 0; //CAN WE REMOVE THIS?
+var firstPlay = 0;  //CAN WE REMOVE THIS FLAG?? was initially necessary to diferenciate two states of the reset function, that was called
+		    //at the begining AND at the main game loop, but we have separate functions now
+		    
 var mindSet = 0; //nominal mindset
 var proxFlag = 0; //flag for proximity
 var colisionDistance = 200; //DISTANCE TO CONSIDER COLISION
@@ -76,7 +78,7 @@ var colisionID = 0; //stores the block witch colided
 var runAwaySpeed = 1; //SPEED USED TO RUN AWAY
 var playerBorderColision = 0; //flag for border colision
 var friendBorderColision = 0; //flag for border colision
-var playerhappiness = 50000;
+var playerhappiness = 50000;  //this number is slowly reduced, and the game ends when its reachs zero
 
 // Handle keyboard controls
 var keysDown = {};
@@ -358,15 +360,18 @@ var main = function () {
 	render();
     playerhappiness -= 1;
     
+	//hapiness more drained if we are angry
     if(mindSet == 1){
         playerhappiness -= 3;
     }
-    
+   
     if(mindSet == 2){
         playerhappiness -= 20;
     }
-
+	
 	then = now;
+	
+	//TODO: End game function
 };
 
 // Cross-browser support for requestAnimationFrame
