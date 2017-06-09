@@ -1,5 +1,5 @@
 //Constants to control the game
-const numberOfFriends = 4;
+const numberOfFriends = 3;
 const friendYSize = 120;
 const friendXSize = 120;
 const playerXSize = 120;
@@ -21,6 +21,23 @@ bgImage.onload = function () {
 	bgReady = true;
 };
 bgImage.src = "images/bkg.png";
+
+// ending image
+var endReady = false;
+var endImage = new Image();
+endImage.onload = function () {
+	endReady = true;
+};
+endImage.src = "images/end.png";
+
+//all alone after-game image
+var allAloneReady = false;
+var allAloneImage = new Image();
+allAloneImage.onload = function () {
+	allAloneReady = true;
+};
+allAloneImage.src = "images/all_alone.png";
+
 
 // Player_happy sprite
 var playerReady = false;
@@ -105,6 +122,9 @@ var friendBorderColision = 0; //flag for border colision
 var playerhappiness = 35000;  //this number is slowly reduced, and the game ends when its reachs zero
 var playerState = 4; //defines the player mood
 
+//This flag tells the render that it is time to render the ending animation
+var end_game = 0;
+
 //Handle the arduino input
 var ardInput = {};
 
@@ -122,7 +142,7 @@ var processArduinoInput = function (input){
         Ardinput.lumiSensor = 0;
     }
     
-    //no input from arduino
+    //the null input from arduino
     else {
         ardInput.up = 0;
         ardInput.down = 0;
@@ -144,11 +164,10 @@ addEventListener("keyup", function (e) {
 	delete keysDown[e.keyCode];
 }, false);
 
-
-
 // Reset the game when the player catches a monster
 var reset = function () {
 if (firstPlay == 0){
+    end_game = 0;
 	player.x = canvas.width / 2;
 	player.y = canvas.height  - 120;
 
@@ -232,6 +251,14 @@ var reCenter = function() {
 
 // Update game objects
 var update = function (modifier) {
+    //check for the RESET keyCode
+    if(82 in keysDown) {
+        console.log("Receving RESET signal!");
+        
+        firstPlay=0;
+        reset();
+    }
+
     //updates the player mood
     if(playerhappiness  < 30000){
         playerState = 3;
@@ -369,6 +396,10 @@ var update = function (modifier) {
 
 // Draw everything - roda todo ciclo
 var render = function () {
+    if(end_game == 0){
+       ctx.globalAlpha = playerhappiness / 15000;
+    }
+    
 	if (bgReady) {
 		ctx.drawImage(bgImage, 0, 0);
 	}
@@ -409,7 +440,23 @@ var render = function () {
         for(i = 0; i < numberOfFriends; i++){
             ctx.drawImage(friendAngryImage, friend[i].x, friend[i].y);
         }
-	}
+    }
+	
+    
+    if (end_game == 1){
+        
+        aux_alpha = ctx.globalAlpha;
+        ctx.drawImage(endImage, 0, 0);
+        ctx.globalAlpha = aux_alpha + 0.005;
+        console.log(ctx.globalAlpha);
+        //TODO WHEN ALHPA GETS TO 0, SHOW THE PLAYER ALL ALONE AND RESTART
+        
+        if(ctx.globalAlpha > 0.9944){
+                ctx.drawImage(allAloneImage, 0, 0);
+                
+                //ADD LOGIC TO RESET GAME
+        }
+    }
     
 	// information for DEBBUGIN
     if(DEBBUG == 1){
@@ -454,6 +501,16 @@ var main = function () {
 	then = now;
 	
 	//TODO: End game function
+    if(playerhappiness < 0){
+        //TODO add ending logic
+        end_game = 1;
+        
+        //Reproduce the end game audio
+        audio_end_game();
+        
+        //restart the game
+        reset();
+    }
 };
 
 // Cross-browser support for requestAnimationFrame
