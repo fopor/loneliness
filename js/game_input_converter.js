@@ -22,10 +22,6 @@ function sendFeed(feed, valor) {
     console.log("Enviado: " + username + "/feeds/" + feed + ": " + valor);
 }
 
-var audio = new Audio('sounds/sadness.wav');
-audio.play();
-
-
 client.on('message', function(topic, message) {
     
     //Display debug information abou the input received
