@@ -1,0 +1,41 @@
+html {
+    background-image: linear-gradient(#EEEEEE, #AAAAAA);
+    height:100%;
+    overflow: hidden;
+}
+
+#monalisa {
+    width: 269px;
+    height: 400px;
+    margin: 100px auto;
+    background: url("img/monalisa.png") no-repeat;
+    border:solid 10px;
+    border-bottom-color:#ffe;
+    border-left-color:#eed;
+    border-right-color:#eed;
+    border-top-color:#ccb;
+    box-shadow: 10px 10px 25px #999999;
+}
+
+#monalisa.ativo {
+    background: url("img/monalisa2.png") no-repeat;
+    animation: shake 0.1s infinite;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-5px, 5px, 0); }
+  20%, 80% { transform: translate3d(10px, -10px, 0); }
+  30%, 50%, 70% { transform: translate3d(-20px, 20px, 0); }
+  40%, 60% { transform: translate3d(20px, -20px, 0); }
+}
+
+#lateral {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+}
+
+button {
+    font-size: 1.2em;
+    padding: 0.2em;
+}

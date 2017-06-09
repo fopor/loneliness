@@ -4,7 +4,7 @@ const friendYSize = 120;
 const friendXSize = 120;
 const playerXSize = 120;
 const playerYSize = 120;
-const DEBBUG = 1;
+const DEBBUG = 0;
 
 
 // Create the canvas
@@ -105,6 +105,34 @@ var friendBorderColision = 0; //flag for border colision
 var playerhappiness = 35000;  //this number is slowly reduced, and the game ends when its reachs zero
 var playerState = 4; //defines the player mood
 
+//Handle the arduino input
+var ardInput = {};
+
+//Process the input - to be called every cicle
+var processArduinoInput = function (input){
+    console.log("Receving arduino update. Code: " + input);
+
+    //"UP" input
+    if(input == 1){
+        ardInput.up=1;
+        ardInput.down = 0;
+        ardInput.left = 0;
+        ardInput.right = 0;
+        ardInput.prox = 0;
+        Ardinput.lumiSensor = 0;
+    }
+    
+    //no input from arduino
+    else {
+        ardInput.up = 0;
+        ardInput.down = 0;
+        ardInput.left = 0;
+        ardInput.right = 0;
+        ardInput.prox = 0;
+        Ardinput.lumiSensor = 0;
+    }
+};
+
 // Handle keyboard controls
 var keysDown = {};
 
@@ -115,6 +143,8 @@ addEventListener("keydown", function (e) {
 addEventListener("keyup", function (e) {
 	delete keysDown[e.keyCode];
 }, false);
+
+
 
 // Reset the game when the player catches a monster
 var reset = function () {
@@ -314,12 +344,12 @@ var update = function (modifier) {
     
     //Process the MOVE INPUTS
     if(proxFlag == 0 && playerBorderColision == 0 && friendBorderColision == 0){
-        if (38 in keysDown) { // Player holding up
+        if (38 in keysDown || ardInput.up == 1) { // Player holding up
             player.y -= player.speed * modifier;
         }
 
         if (40 in keysDown) { // Player holding down
-            player.y += player.speed * modifier;
+            player.y += player.speed * modifier ;
         }
         
         if (37 in keysDown) { // Player holding left

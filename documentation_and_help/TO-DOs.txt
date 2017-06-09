@@ -1,0 +1,3 @@
+Update the sprites, the canvas render recognize the background, witch is nice (we can draw any shape).
+
+Code the gesture sensor.
