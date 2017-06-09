@@ -1,3 +1,9 @@
 Update the sprites, the canvas render recognize the background, witch is nice (we can draw any shape).
 
 Code the gesture sensor.
+
+Fix the RESET signal to actually RESET the game!
+
+Add some STATISTICAL variables to be saved at the adafruit website.
+
+DOCUMENTATE ALL THE AUDIO USED!!!
