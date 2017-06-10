@@ -1,5 +1,8 @@
 //Constants to control the game
 const numberOfFriends = 3;
+const ScaredColisionDistance = 250;
+const AngryColisionDistance = 250;
+const NormalColisionDistance = 250;
 const friendYSize = 120;
 const friendXSize = 120;
 const playerXSize = 120;
@@ -10,8 +13,8 @@ const DEBBUG = 0;
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 1152;
-canvas.height = 648;
+canvas.width = 1800;
+canvas.height = 900;
 document.body.appendChild(canvas);
 
 // Background image
@@ -37,7 +40,6 @@ allAloneImage.onload = function () {
 	allAloneReady = true;
 };
 allAloneImage.src = "images/all_alone.png";
-
 
 // Player_happy sprite
 var playerReady = false;
@@ -109,12 +111,13 @@ function distanceCalc (obj1, obj2) {
 var friend= [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
 
 var friendCaught = 0; //CAN WE REMOVE THIS?
-var firstPlay = 0;  //CAN WE REMOVE THIS FLAG?? was initially necessary to diferenciate two states of the reset function, that was called
-		    //at the begining AND at the main game loop, but we have separate functions now
-		    
+//CAN WE REMOVE THIS FLAG?? was initially necessary to diferenciate two states of the reset function, that was called
+ //at the begining AND at the main game loop, but we have separate functions now
+var firstPlay = 0; 
+
 var mindSet = 0; //nominal mindset
 var proxFlag = 0; //flag for proximity
-var colisionDistance = 200; //DISTANCE TO CONSIDER COLISION
+var colisionDistance = NormalColisionDistance; //DISTANCE TO CONSIDER COLISION
 var colisionID = 0; //stores the block witch colided
 var runAwaySpeed = 1; //SPEED USED TO RUN AWAY
 var playerBorderColision = 0; //flag for border colision
@@ -276,21 +279,21 @@ var update = function (modifier) {
     //process the MOOD INPUTS
     if (65 in keysDown) { // Player pushs 'A'
             //start SCARED MODE
-            colisionDistance = 250;
+            colisionDistance = ScaredColisionDistance;
             runAwaySpeed = 5;
             mindSet = 1;
         }
         
     if (83 in keysDown) { // Player pushs 'S'
             //start ANGRY MODE
-            colisionDistance = 120;
+            colisionDistance = AngryColisionDistance;
             runAwaySpeed = 30;
             mindSet = 2;
         }
         
     if (68 in keysDown) { // Player pushs 'D'
             //start NOMINAL MODE
-            colisionDistance = 200;
+            colisionDistance = NormalColisionDistance;
             runAwaySpeed = 1;
             mindSet = 0;
         }
