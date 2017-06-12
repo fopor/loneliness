@@ -6,8 +6,6 @@
 var sadness_audio = new Audio('sounds/sadness.wav');
 var back_music = new Audio ('sounds/back_music.wav');
 
-
-
 //keeps the background music playing in loop
 back_music.addEventListener('ended', function() {
     this.currentTime = 0;
@@ -16,10 +14,19 @@ back_music.addEventListener('ended', function() {
 back_music.play();
 
 //sound efeccts at the end of the game
-var audio_end_game = function (){
-    //stops the background music
-    back_music.pause();
+var audio_end_game = function (i){
+    if( i == 1 ) {
+        //stops the background music
+        back_music.pause();
 
-    //play sadness_audio
-    sadness_audio.play();
+        //play sadness_audio
+        sadness_audio.play();
+    }
+
+    //resets the background music
+    if( i == 0){
+        sadness_audio.pause();
+        back_music.play();
+    }
 }
+

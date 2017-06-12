@@ -3,8 +3,8 @@ const numberOfFriends = 3;
 const ScaredColisionDistance = 250;
 const AngryColisionDistance = 250;
 const NormalColisionDistance = 250;
-const friendYSize = 120;
-const friendXSize = 120;
+const friendYSize = 32;
+const friendXSize = 32;
 const playerXSize = 120;
 const playerYSize = 120;
 const DEBBUG = 0;
@@ -110,11 +110,6 @@ function distanceCalc (obj1, obj2) {
 //list of FRINDS (SIZE MUST MATCH OR BE GREATER THAN CONST numberOfFriends)
 var friend= [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
 
-var friendCaught = 0; //CAN WE REMOVE THIS?
-//CAN WE REMOVE THIS FLAG?? was initially necessary to diferenciate two states of the reset function, that was called
- //at the begining AND at the main game loop, but we have separate functions now
-var firstPlay = 0; 
-
 var mindSet = 0; //nominal mindset
 var proxFlag = 0; //flag for proximity
 var colisionDistance = NormalColisionDistance; //DISTANCE TO CONSIDER COLISION
@@ -169,21 +164,31 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches a monster
 var reset = function () {
-if (firstPlay == 0){
-    end_game = 0;
-	player.x = canvas.width / 2;
-	player.y = canvas.height  - 120;
+    player.x = canvas.width / 2;
+    player.y = canvas.height  - 120;
 
-	// Throw the friends somewhere on the screen 
+    // Throw the friends somewhere on the screen 
     for(i = 0; i < numberOfFriends; i++){
         friend[i].x = 128 + (canvas.width)*(i/(numberOfFriends));
         
         //TO-DO add random factor here
         friend[i].y = 100+ Math.random()*60;
     }
-    
-    firstPlay = 1;
-    }
+
+    mindSet = 0; //resets mind set
+    proxFlag = 0; //flag for proximity
+    colisionDistance = NormalColisionDistance; //resets colision distance
+    playerhappiness = 35000;  //resets the hapiness counter
+    playerState = 4; // resets the mood
+
+    //resets the render alpha
+    ctx.globalAlpha = 1;
+
+    //resets the audio
+    audio_handler(0);  
+
+    //resets the end game flag
+    end_game = 0;
 };
 
 var softColision = function () {
@@ -258,7 +263,6 @@ var update = function (modifier) {
     if(82 in keysDown) {
         console.log("Receving RESET signal!");
         
-        firstPlay=0;
         reset();
     }
 
@@ -304,22 +308,22 @@ var update = function (modifier) {
     
     //check for border colision for all friends
     for(i = 0; i < numberOfFriends; i++){
-        if(friend[i].x + friendXSize >= canvas.width) {
+        if(friend[i].x + friendXSize >= canvas.width+350) {
             friendBorderColision = 1;
         }
         
         //dont move past the left wall
-        if(friend[i].x <= 0){
+        if(friend[i].x <= -350){
             friendBorderColision = 1;
         }
         
         //dont pass the ceiling
-        if(friend[i].y <= 0){
+        if(friend[i].y <= -350){
              friendBorderColision = 1;
         }
         
         //dont move past the floor
-        if(friend[i].y + friendYSize >= canvas.height) {
+        if(friend[i].y + friendYSize >= canvas.height+350) {
             friendBorderColision = 1;
         }
     }
@@ -458,6 +462,7 @@ var render = function () {
                 ctx.drawImage(allAloneImage, 0, 0);
                 
                 //ADD LOGIC TO RESET GAME
+                cosole.log("trying to draw ending pic");
         }
     }
     
@@ -482,6 +487,13 @@ var render = function () {
 	// Request to do this again ASAP
 	requestAnimationFrame(main);
 };
+
+//the audio handler re-call function
+var audio_handler = function (i) {
+
+    audio_end_game(i);
+
+}
 
 // The main game loop
 var main = function () {
@@ -509,10 +521,13 @@ var main = function () {
         end_game = 1;
         
         //Reproduce the end game audio
-        audio_end_game();
+        audio_handler(1);
+
+
+        //restart the game    
+        //actually do not
         
-        //restart the game
-        reset();
+
     }
 };
 

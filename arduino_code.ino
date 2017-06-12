@@ -5,7 +5,7 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-const int led_pin = 16;
+const int light_relay_pin = 16;
 const int vibration_pin = 5;
 int vibration_last = 0;
 
@@ -29,6 +29,8 @@ Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO
 
 //Sets the input "input-1", that is to be send to the WEB game
 Adafruit_MQTT_Publish vibration = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/input1");
+
+//Sets the output "light-relay" that will receibe the RELAY STATUS
 
 //Do the conection to the server
 void MQTT_connect();
@@ -58,7 +60,7 @@ void setup()
     Serial.println(WiFi.localIP());
     
     //what does this do?
-    mqtt.subscribe(&led);
+    mqtt.subscribe(&light_relay);
 }
 
 void loop() {
