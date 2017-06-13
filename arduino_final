@@ -1,0 +1,151 @@
+#include <Wire.h>
+#include <SparkFun_APDS9960.h>
+#include <ESP8266WiFi.h>
+#include "Adafruit_MQTT.h"
+#include "Adafruit_MQTT_Client.h"
+
+// Pins
+#define APDS9960_INT     0   // Needs to be an interrupt pin
+
+
+//WiFI
+#define WIFI_SSID       "dlink-F672"
+#define WIFI_PASS       "batata14"
+
+//Adafruit IO
+#define AIO_SERVER       "io.adafruit.com"
+#define AIO_SERVERPORT   1883
+#define AIO_USERNAME     "fopor"
+#define AIO_KEY          "07c9bb4794af4031a1de982206570012"
+
+WiFiClient client;
+Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+Adafruit_MQTT_Publish input = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/input");
+void MQTT_connect();
+
+
+
+// Global Variables
+SparkFun_APDS9960 apds = SparkFun_APDS9960();
+int isr_flag = 0;
+
+void setup() {
+
+  // Set interrupt pin as input
+  pinMode(APDS9960_INT, INPUT);
+
+  // Initialize Serial port
+  Serial.begin(9600);
+  Serial.println();
+  Serial.println(F("--------------------------------"));
+  Serial.println(F("SparkFun APDS-9960 - GestureTest"));
+  Serial.println(F("--------------------------------"));
+  
+  // Initialize interrupt service routine
+  attachInterrupt(0, interruptRoutine, FALLING);
+
+  // Initialize APDS-9960 (configure I2C and initial values)
+  if ( apds.init() ) {
+    Serial.println(F("APDS-9960 initialization complete"));
+  } else {
+    Serial.println(F("Something went wrong during APDS-9960 init!"));
+  }
+  
+  // Start running the APDS-9960 gesture sensor engine
+  if ( apds.enableGestureSensor(true) ) {
+    Serial.println(F("Gesture sensor is now running"));
+  } else {
+    Serial.println(F("Something went wrong during gesture sensor init!"));
+  }
+
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+
+
+}
+
+void loop() {
+  MQTT_connect();
+  
+  if( isr_flag == 1 ) {
+    detachInterrupt(0);
+    handleGesture();
+    isr_flag = 0;
+    attachInterrupt(0, interruptRoutine, FALLING);
+  }
+}
+
+void interruptRoutine() {
+  isr_flag = 1;
+}
+
+void handleGesture() {
+    if ( apds.isGestureAvailable() ) {
+    switch ( apds.readGesture() ) {
+      case DIR_UP:
+        Serial.println("UP");
+        input.publish(1);
+        break;
+      case DIR_DOWN:
+        Serial.println("DOWN");
+        input.publish(2);
+        break;
+      case DIR_LEFT:
+        Serial.println("LEFT");
+        input.publish(3);
+        break;
+      case DIR_RIGHT:
+        Serial.println("RIGHT");
+        input.publish(4);
+        break;
+      case DIR_NEAR:
+        Serial.println("NEAR");
+        break;
+      case DIR_FAR:
+        Serial.println("FAR");
+        break;
+      default:
+        Serial.println("NONE");
+    }
+  }
+}
+
+
+void MQTT_connect()
+{
+  int8_t ret;
+
+  if (mqtt.connected())
+  {
+    return;
+  }
+
+  Serial.print("Connecting to MQTT... ");
+
+  uint8_t retries = 3;
+  while ((ret = mqtt.connect()) != 0)
+  {
+       Serial.println(mqtt.connectErrorString(ret));
+       Serial.println("Retrying MQTT connection in 5 seconds...");
+       mqtt.disconnect();
+       delay(5000);
+       retries--;
+       if (retries == 0)
+       {
+         while (1);
+       }
+  }
+  Serial.println("MQTT Connected!");
+}
