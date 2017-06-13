@@ -130,25 +130,31 @@ var ardInput = {};
 var processArduinoInput = function (input){
     console.log("Receving arduino update. Code: " + input);
 
+    //set all the directions movement to zero
+    ardInput.up = 0;
+    ardInput.down = 0;
+    ardInput.left = 0;
+    ardInput.right = 0;
+
     //"UP" input
     if(input == 1){
         ardInput.up=1;
-        ardInput.down = 0;
-        ardInput.left = 0;
-        ardInput.right = 0;
-        ardInput.prox = 0;
-        Ardinput.lumiSensor = 0;
     }
-    
-    //the null input from arduino
-    else {
-        ardInput.up = 0;
-        ardInput.down = 0;
-        ardInput.left = 0;
-        ardInput.right = 0;
-        ardInput.prox = 0;
-        Ardinput.lumiSensor = 0;
+
+    //"DOWN" input
+    else if(input == 2){
+        ardInput.down=1;
     }
+
+    //"LEFT" input
+    else if(input == 3){
+        ardInput.left=1;
+    }
+
+    //"RIGHT" input
+    else if(input == 4){
+        ardInput.right=1;
+    } 
 };
 
 // Handle keyboard controls
@@ -172,7 +178,7 @@ var reset = function () {
         friend[i].x = 128 + (canvas.width)*(i/(numberOfFriends));
         
         //TO-DO add random factor here
-        friend[i].y = 100+ Math.random()*60;
+        friend[i].y = 200+ Math.random()*60;
     }
 
     mindSet = 0; //resets mind set
@@ -382,15 +388,15 @@ var update = function (modifier) {
             player.y -= player.speed * modifier;
         }
 
-        if (40 in keysDown) { // Player holding down
+        if (40 in keysDown || ardInput.down == 1) { // Player holding down
             player.y += player.speed * modifier ;
         }
         
-        if (37 in keysDown) { // Player holding left
+        if (37 in keysDown || ardInput.left == 1) { // Player holding left
             player.x -= player.speed * modifier;
         }
         
-        if (39 in keysDown) { // Player holding right
+        if (39 in keysDown || ardInput.right == 1) { // Player holding right
             player.x += player.speed * modifier;
         }
     }
