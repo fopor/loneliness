@@ -154,7 +154,22 @@ var processArduinoInput = function (input){
     //"RIGHT" input
     else if(input == 4){
         ardInput.right=1;
-    } 
+    }
+
+    //NOMINAL MOOD
+    else if(input == 5){
+        ardInput.mood = 3;
+    }
+
+    //SCARED MOOD
+    else if(input == 6){
+        ardInput.mood = 1;
+    }
+
+    //ANGRY MOOD
+    else if(input == 7){
+        ardInput.mood = 2;
+    }
 };
 
 // Handle keyboard controls
@@ -287,21 +302,21 @@ var update = function (modifier) {
 
 
     //process the MOOD INPUTS
-    if (65 in keysDown) { // Player pushs 'A'
+    if (65 in keysDown || ardInput.mood == 1) { // Player pushs 'A'
             //start SCARED MODE
             colisionDistance = ScaredColisionDistance;
             runAwaySpeed = 5;
             mindSet = 1;
         }
         
-    if (83 in keysDown) { // Player pushs 'S'
+    if (83 in keysDown || ardInput.mood == 2) { // Player pushs 'S'
             //start ANGRY MODE
             colisionDistance = AngryColisionDistance;
             runAwaySpeed = 30;
             mindSet = 2;
         }
         
-    if (68 in keysDown) { // Player pushs 'D'
+    if (68 in keysDown || ardInput.mood == 3) { // Player pushs 'D'
             //start NOMINAL MODE
             colisionDistance = NormalColisionDistance;
             runAwaySpeed = 1;
