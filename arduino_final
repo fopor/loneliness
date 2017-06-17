@@ -120,7 +120,14 @@ void loop() {
     Serial.print(ambient_light);
     
     //TODO USE THIS ambient_light
-    //input.publish(n);
+    if(ambient_light < 800){
+      input.publish(6);
+    }
+
+    else {
+      input.publish(5);
+    }
+    
   }
 
   // Read the proximity value
@@ -131,8 +138,17 @@ void loop() {
     Serial.println(proximity_data);
     
     //TODO USE THIS proximity_data
-    //input.publish(n);
+    if(proximity_data < 50){
+      input.publish(5);
+    }
+
+    else if (proximity_data > 100){
+      input.publish(7);
+    }
   }
+
+    
+  
 
   delay(250);
 }
